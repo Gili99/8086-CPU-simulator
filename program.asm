@@ -1,2 +1,5 @@
-mov ax, bx
-add bl, bh
+inc al
+add ah, [21h]
+sub bx, dx
+dec bx
+add cx, bx
