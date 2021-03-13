@@ -1,6 +1,6 @@
 import sys
 from lex import TokenType
-from opcode import RegType, OperandType
+from opcode_enums import RegType, OperandType
 
 class Parser:
     def __init__(self, lexer, emitter):

@@ -16,29 +16,29 @@ class MPRegister(ABC):
     
     def limit(self):
         return self._limitInBits
-    
+  
     @abstractclassmethod
-    def get_value(self):
+    def get_value_bits(self):
         pass
 
     @abstractclassmethod
-    def set_value(self, bits):
+    def set_value_bits(self, bits):
         pass
 
 class MP8BitRegister(MPRegister):
     def __init__(self):
-        super(8)
+        super().__init__(8)
         self._bits = [0 for i in range(8)]
 
-    def get_value(self):
+    def get_value_bits(self):
         return self._bits
     
-    def set_value(self, bits):
+    def set_value_bits(self, bits):
         self._bits = bits
 
 class MP16BitRegister(MPRegister):
     def __init__(self):
-        super(16)
+        super().__init__(16)
         self._lower = MP8BitRegister()
         self._upper = MP8BitRegister()
 
@@ -52,9 +52,11 @@ class MP16BitRegister(MPRegister):
         else:
             raise Exception("Unknown identifier in register")
     
-    def get_value(self):
-        return self._upper.get_value().extend(self._lower.get_value())
+    def get_value_bits(self):
+        bits = self._upper.get_value_bits().copy()
+        bits.extend(self._lower.get_value_bits())
+        return bits
     
-    def set_value(self, bits):
-        self._upper.set_value(bits[0:8])
-        self._lower.set_value(bits[8:16])
+    def set_value_bits(self, bits):
+        self._upper.set_value_bits(bits[0:8])
+        self._lower.set_value_bits(bits[8:16])

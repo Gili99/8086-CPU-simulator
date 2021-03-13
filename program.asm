@@ -1,5 +1,3 @@
-inc al
-add ah, [21h]
-sub bx, dx
-dec bx
-add cx, bx
+mov ax, 3h
+add bx, ax
+add bx, 5h
