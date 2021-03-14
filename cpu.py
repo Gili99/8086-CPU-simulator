@@ -53,6 +53,14 @@ class CPU8086:
         elif sourceType == OperandType.HEX_NUMBER.value:
             value = int(source, 16)
 
+        # the source is a binary number
+        elif sourceType == OperandType.BIN_NUMBER.value:
+            value = int(source, 2)
+
+        # the source is placed inside a memory address
+        elif sourceType == OperandType.MEMORY_ADDRESS.value:
+            pass
+
         # Determine the size of the destination register
         sizeOfReg = 16
         if int(regType) == RegType.REG8BIT.value:
