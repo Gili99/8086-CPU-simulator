@@ -1,6 +1,7 @@
 from registers import FlagsRegister, MP16BitRegister
 from opcode_enums import OperandType, RegType
 from alu import ALU
+from memory import Memory
 import math
 from enum import Enum
 
@@ -24,6 +25,9 @@ class CPU8086:
             "b": MP16BitRegister(), \
             "c": MP16BitRegister(), \
             "d": MP16BitRegister()}
+        
+        # set up the memory
+        self.memory = Memory(10)
 
     def runProgram(self, commands):
         for command in commands:
@@ -42,7 +46,14 @@ class CPU8086:
     def resolveDestinationRegister(self, commandParts):
         return self.resolveMPRegister(commandParts[2])
 
-    def resolveSourceValue(self, sourceType, source, regType):
+    def resolveDestination(self, commandParts):
+        destType = commandParts[1]
+        if int(destType) == RegType.MEMORY.value:
+            return (self.memory, int(commandParts[2], 16)) # destination addresses alaways in hex form 
+        else:
+            return (self.resolveDestinationRegister(commandParts), None)
+
+    def resolveOperandValue(self, sourceType, source, destType):
         sourceType = int(sourceType)
 
         # The source is a register
@@ -63,7 +74,7 @@ class CPU8086:
 
         # Determine the size of the destination register
         sizeOfReg = 16
-        if int(regType) == RegType.REG8BIT.value:
+        if int(destType) == RegType.REG8BIT.value or int(destType) == RegType.MEMORY.value:
             sizeOfReg = 8
 
         # convert the value to binary array
@@ -94,24 +105,28 @@ class CPU8086:
     def arithTwoOperandOperation(self, commandParts, operation):
         # get relevant parts for the operation
         #print(commandParts)
-        regType = commandParts[1]
-        destReg = self.resolveDestinationRegister(commandParts)
+        destType = commandParts[1]
+        dest, location = self.resolveDestination(commandParts)
         typeOfSource = commandParts[3]
         source = commandParts[4]
-        binArr = self.resolveSourceValue(typeOfSource, source, regType)
+        binArr = self.resolveOperandValue(typeOfSource, source, destType)
 
         # perform the operation
-        operation(regType, destReg, typeOfSource, source, binArr)
+        operation(destType, dest, location, typeOfSource, source, binArr)
 
         # check for flag changes
-        print(commandParts[2] + " : " + str(self.getRegisterValue((destReg), PrintMode.DECIMAL)))
+        print(commandParts[2] + " : " + str(self.getRegisterValue((dest), PrintMode.DECIMAL)))
 
     # mov operation - mov value from register/number into destination register
-    def mov(self, regType, destReg, typeOfSource, source, binArr):
-        destReg.set_value_bits(binArr)
+    def mov(self, destType, dest, location, typeOfSource, source, binArr):
+        # destination is a memory
+        if int(destType) == RegType.MEMORY.value:
+            dest[location] = binArr
+        else: # destination is a register
+            dest.set_value_bits(binArr)
 
     # add operation - add the tource value into the destination register
-    def add(self, regType, destReg, typeOfSource, source, binArr):
-        destBits = destReg.get_value_bits()
+    def add(self, destType, dest, location, typeOfSource, source, binArr):
+        destBits = dest.get_value_bits()
         resultArr, isCarry = ALU.addTwoBinaryArrays(destBits, binArr)
-        destReg.set_value_bits(resultArr)
+        dest.set_value_bits(resultArr)

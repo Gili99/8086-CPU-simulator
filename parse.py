@@ -81,7 +81,7 @@ class Parser:
         else:
             self._abort("Expected register. got: " + str(self.curToken.kind))
     
-    # doubleOperands ::= REG8BIT, source8 | REG16BIT, source16
+    # doubleOperands ::= REG8BIT, source8 | REG16BIT, source16 | memory
     def doubleOperands(self):
         print("OPERANDS")
 
@@ -104,6 +104,11 @@ class Parser:
             self._nextToken()
             self._match(TokenType.COMMA)
             self.source16()
+        elif self._checkToken(TokenType.LEFT_BRACE):
+            # emit opcode
+            self.emitter.addOpcodePart(RegType.MEMORY.value)
+
+            self.memory()
         else:
             self._abort("Unexpected token at operands: " + str(self.curToken.kind))
 
@@ -137,6 +142,24 @@ class Parser:
         else:
             self.numberSource()
     
+    # memory ::= [HEX_NUMBER] (REG8 | REG16 | numberSource)-exactly one
+    def memory(self):
+        print("memory")
+
+        # [HEX_NUMBER]
+        self._match(TokenType.LEFT_BRACE)
+        self.emitter.addOpcodePart(self.curToken.text) # add the number
+        self._match(TokenType.HEX_NUMBER)
+        self._match(TokenType.RIGHT_BRACE)
+        self._nextToken()
+
+        if self._checkToken(TokenType.REG8BIT):
+            pass
+        elif self._checkToken(TokenType.REG16BIT):
+            pass
+        else:
+            self.numberSource()
+
     # numberSource ::= number | [number]
     def numberSource(self):
         print("NUMBER_SOURCE")

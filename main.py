@@ -13,6 +13,7 @@ def main():
     parser = Parser(lexer, emitter)
     parser.program()
     program = emitter.getProgramScript()
+    print(program)
 
     cpu = CPU8086()
     cpu.runProgram(program.split('\n'))
