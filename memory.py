@@ -24,6 +24,10 @@ class Memory:
     def _isWithinRange(self, index):
         return index >= 0 and index < len(self._ram)
 
+    # Returns the length of the memory in bytes
+    def __len__(self):
+        return len(self._ram)
+
     # Get the value bits of a specific cell or slice of cells
     def __getitem__(self, index):
         isSlice = isinstance(index, slice)

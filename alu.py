@@ -1,7 +1,17 @@
+import math
+
 #####################################################################
 # ALU - a class used for basic arithmetic operations on binary arrays
 #####################################################################
 class ALU:
+
+    @staticmethod
+    def binArrToDec(binArr):
+        bitsRev = binArr[::-1]
+        result = 0
+        for i, bit in enumerate(bitsRev):
+            result += math.pow(2, i) * int(bit)
+        return result
 
     @staticmethod
     def addTwoBinaryArrays(arr1, arr2):
@@ -24,5 +34,5 @@ class ALU:
         # check if there is carry remaining
         if carry == 1:
             carryFlag = True
-            
+
         return (resArr[::-1], carryFlag) 

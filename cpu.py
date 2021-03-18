@@ -70,7 +70,7 @@ class CPU8086:
 
         # the source is placed inside a memory address
         elif sourceType == OperandType.MEMORY_ADDRESS.value:
-            pass
+            value = int(ALU.binArrToDec(self.memory[int(source, 16)])) # memory address is always in HEX
 
         # Determine the size of the destination register
         sizeOfReg = 16
@@ -79,7 +79,6 @@ class CPU8086:
 
         # convert the value to binary array
         binVal = bin(value)
-
         binArr = [0 for i in range(sizeOfReg - len(binVal) + 2)]
         for i in range(2, len(binVal)):
             binArr.append(int(binVal[i]))
@@ -87,14 +86,24 @@ class CPU8086:
 
     def getRegisterValue(self, register, printMode):
         if printMode == PrintMode.DECIMAL:
-            bitsRev = register.get_value_bits()[::-1]
-            result = 0
-            for i, bit in enumerate(bitsRev):
-                result += math.pow(2, i) * int(bit)
+            result = ALU.binArrToDec(register.get_value_bits())
         return result
 
     def printState(self):
-        pass
+        # print the registers
+        axVal = self.getRegisterValue(self.mpRegs['a'], PrintMode.DECIMAL)
+        bxVal = self.getRegisterValue(self.mpRegs['b'], PrintMode.DECIMAL)
+        cxVal = self.getRegisterValue(self.mpRegs['c'], PrintMode.DECIMAL)
+        dxVal = self.getRegisterValue(self.mpRegs['d'], PrintMode.DECIMAL)
+
+        print("ax: %d, bx: %d, cx: %d, dx: %d" % (axVal, bxVal, cxVal, dxVal))
+
+        # print the memory
+        memString = ''
+        for i in range(len(self.memory)):
+            memString += str(i) + ": " + str(int(ALU.binArrToDec(self.memory[i]))) + ", "
+        
+        print(memString)
 
     ############################################################################
     # Arithmetic two operands operations
@@ -108,14 +117,19 @@ class CPU8086:
         destType = commandParts[1]
         dest, location = self.resolveDestination(commandParts)
         typeOfSource = commandParts[3]
-        source = commandParts[4]
+
+        # check if source is a memory address
+        if len(commandParts) > 6:
+            source = commandParts[5] # 4 is type of number. currently only hex when using memory
+        else:
+            source = commandParts[4]
         binArr = self.resolveOperandValue(typeOfSource, source, destType)
 
         # perform the operation
         operation(destType, dest, location, typeOfSource, source, binArr)
 
         # check for flag changes
-        print(commandParts[2] + " : " + str(self.getRegisterValue((dest), PrintMode.DECIMAL)))
+        self.printState()
 
     # mov operation - mov value from register/number into destination register
     def mov(self, destType, dest, location, typeOfSource, source, binArr):
